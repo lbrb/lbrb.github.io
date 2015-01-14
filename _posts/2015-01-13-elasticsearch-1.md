@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ElasticSearch 介绍 
+title: ElasticSearch 介绍
 category: 技术
 tag: ElasticSearch
 description: ElasticSearch 介绍
