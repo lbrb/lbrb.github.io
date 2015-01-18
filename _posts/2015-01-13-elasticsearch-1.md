@@ -144,6 +144,9 @@ description: ElasticSearch 介绍
               "_version" : 2
             }
 
+### 扩展阅读
 
-
-
+        [与Costin Leau谈论Elasticsearch，大数据及Hadoop](http://www.infoq.com/cn/articles/costin-elasticsearch-bigdata)
+        [一些国外优秀的elasticsearch使用案例](http://blog.csdn.net/laigood/article/details/8733292)
+        [中文文档](http://fuxiaopang.gitbooks.io/learnelasticsearch)
+        [中文社区](http://www.elasticsearch.cn/)

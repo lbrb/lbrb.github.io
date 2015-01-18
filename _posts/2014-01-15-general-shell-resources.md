@@ -123,3 +123,12 @@ description:
     apt-get remove XXX
     apt-get update
     apt-get upgrade
+
+
+### 将命令行中的路径改为只显示当前路径
+
+    if [ "$color_prompt " = yes ]; then
+        PS1 ='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\W \[\033[00m\]\$ '
+    else
+        PS1 ='${debian_chroot:+($debian_chroot)}\u@\h:\W \$ '
+    cd 将蓝色的w由小写改成大写，可以表示只显示当前目录名称.
