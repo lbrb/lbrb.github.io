@@ -96,3 +96,32 @@ description:
 
         bin/spring stop #关闭
         bin/spring status #查看状态
+
+- each 方法
+
+        '123'.each { |e| p e} #rails2 可以执行
+        '123'.each { |e| p e} #rails4 不可以
+        '123'.split.each { |e| p e} #rails4 解决办法
+
+- includes方法
+
+        Company.includes(:user).references(:user).where('users.id=1') # 用到join表中的查询时需要将表references
+
+
+        #查询方案也会不同
+        Company.includes(:user).where(id: 1)
+        #sql: select companies.* from companies where companies.id =1
+              select users.* from users where id in (1)
+
+        Company.includes(:user).where('users.id =1').references(:user)
+        #sql: select companies.*, users.* from companies left out join users on companies.user_id = users.id where users.id = 1
+
+- Can't mass-assign protected attributes for
+
+        #这个是rails4更严格造成的
+        #解决办法
+        #第一种方法（比较简单）：
+        #添加protected_attributes gem
+        #在model中写清更改的字段：attr_accessible :key, :owner
+        #第二种方法（rails4方案）：
+        #permit(:name, :etc, :etc)
