@@ -2,7 +2,7 @@
 layout: post
 title: 升级Rials4.2
 category: 技术
-tag: ROR
+tag: Ruby
 description:
 ---
 

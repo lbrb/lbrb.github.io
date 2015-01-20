@@ -2,8 +2,8 @@
 layout: post
 title: Rails 常用资源
 category: 资源
-tags: ROR
-keywords: ROR
+tags: Ruby
+keywords: Ruby
 description: 
 ---
 

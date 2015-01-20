@@ -2,7 +2,7 @@
 layout: post
 title: ElasticSearch ROR 实战
 category: 技术
-tag: [ElasticSearch, ROR]
+tag: [ElasticSearch, Ruby]
 description: ElasticSearch ROR 实战
 ---
 
