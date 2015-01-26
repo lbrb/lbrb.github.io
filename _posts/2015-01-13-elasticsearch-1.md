@@ -2,7 +2,7 @@
 layout: post
 title: ElasticSearch 介绍
 category: 技术
-tag: ElasticSearch
+tag: [ElasticSearch, Ruby, Search]
 description: ElasticSearch 介绍
 ---
 
