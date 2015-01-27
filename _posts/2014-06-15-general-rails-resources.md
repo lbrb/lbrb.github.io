@@ -33,3 +33,8 @@ description:
         clients.each do |client|
           puts client.address.postcode
         end
+
+### 根据文件内容生成sha256,解决文件重复上传问题
+
+        require 'digest'
+        Digest::SHA256.file(file_path).hexdigest
