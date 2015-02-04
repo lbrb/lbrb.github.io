@@ -132,3 +132,7 @@ description:
     else
         PS1 ='${debian_chroot:+($debian_chroot)}\u@\h:\W \$ '
     cd 将蓝色的w由小写改成大写，可以表示只显示当前目录名称.
+
+### 查看占用端口进程
+
+    lsof -i:3000
