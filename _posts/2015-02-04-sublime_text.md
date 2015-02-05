@@ -10,13 +10,15 @@ tag: [SublimeText]
 我的sublime_text配置都放在github上了，[github地址](https://github.com/lbrb/User)
 如果想直接使用我的配置可以执行下面的两行命令
 
-	cd .config/sublime-text-3/Package
+t	cd .config/sublime-text-3/Package
 	git clone https://github.com/lbrb/User.git
 	
 ### 我安装的一些插件
 
-- Scope​Always #可以查看当前文件的selector scope
+- Scope​Always #可以查看当前文件的selector scope(没必要了，自带快捷键Ctrl+Alt+Shift+p)
 - git #集成git的命令
+- BeautifyRuby
+- Ruby on Rails snippets
 
 ### ubuntu下支持中文输入(sublime 使用deb默认安装)
 
