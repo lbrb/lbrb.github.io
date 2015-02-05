@@ -15,8 +15,8 @@ tag: [SublimeText]
 	
 ### 我安装的一些插件
 
-- ScopeHunter #可以查看当前文件的selector scope
-
+- Scope​Always #可以查看当前文件的selector scope
+- git #集成git的命令
 
 ### ubuntu下支持中文输入(sublime 使用deb默认安装)
 
@@ -24,3 +24,10 @@ tag: [SublimeText]
 	cd sublime_text_chinese_input
 	sudo cp libsublime-imfix.so /opt/sublime_text/
 	sudo cp subl /usr/bin/
+	sudo cp sublime_text.desktop /usr/share/applications/
+
+### ubuntu下安装fcitx-sunpinyin[参考](http://freetstar.com/ubuntu-most-use-friendly-fcitx-sunpinyin/)
+	
+	sudo find ~ -name fcitx -ok rm -rf {} \;
+	sudo apt-get install  fcitx
+	sudo apt-get install fcitx-sunpinyin
