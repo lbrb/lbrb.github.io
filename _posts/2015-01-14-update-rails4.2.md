@@ -125,3 +125,21 @@ description:
         #在model中写清更改的字段：attr_accessible :key, :owner
         #第二种方法（rails4方案）：
         #permit(:name, :etc, :etc)
+
+- 使用rack_cache 缓存静态页面
+
+        gem 'rack-cache'
+        #production.rb
+        config.action_dispatch.rack_cache = true
+
+- paginate调整
+        
+        #以前
+        paginate(:page => params[:page] || 1
+                :per_page => 5
+                :order => 'updated_at desc')
+
+        #rails4.2,要将where,order等查询条件放在paginate外面
+        order('updated_at desc')
+        .paginate(:page => params[:page] || 1
+                :per_page => 5)
