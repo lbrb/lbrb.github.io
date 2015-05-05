@@ -88,6 +88,10 @@ description:
 
     du -h --max-depth=1 .
 
+### 查看当前文件的下载进度
+
+	du -sh *
+
 ### 查看所有磁盘大小
 
     df -h
