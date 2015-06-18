@@ -53,3 +53,26 @@ description:
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
             self.imageView.image = image;
         }];
+		
+### 自定义operation
+
+
+		- (void)main//operation添加到队列后，会执行main方法
+		{
+			@autoreleasepool {//需要自己写自动释放池
+				if (self.isCancelled) return; //响应用户取消操作
+				
+				NSURL *url = [NSURL URLWithString:self.imageUrl];
+				NSData *data = [NSData dataWithContentsOfURL:url]; // 下载
+				UIImage *image = [UIImage imageWithData:data]; // NSData -> UIImage
+				
+				if (self.isCancelled) return; //响应用户取消操作
+				
+				// 回到主线程
+				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+					if ([self.delegate respondsToSelector:@selector(downloadOperation:didFinishDownload:)]) {
+						[self.delegate downloadOperation:self didFinishDownload:image];
+					}
+				}];
+			}
+		}
