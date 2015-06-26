@@ -6,269 +6,226 @@ tag: [IOS, Http]
 description:  
 ---
 
-### NSURLConnection
+### CoreLocation基本使用
 
-#### 下载文件
+	- (void)viewDidLoad {
+	    [super viewDidLoad];
+	    // Do any additional setup after loading the view, typically from a nib.
+    
+	    // 1.创建CoreLocation管理者
+	//    CLLocationManager *mgr = [[CLLocationManager alloc] init];
+    
+	    // 2.成为CoreLocation管理者的代理监听获取到的位置
+	    self.mgr.delegate = self;
+    
+	    // 设置多久获取一次
+	//    self.mgr.distanceFilter = 500;
+    
+	    // 设置获取位置的精确度
+	    /*
+	      kCLLocationAccuracyBestForNavigation 最佳导航
+	      kCLLocationAccuracyBest;  最精准
+	      kCLLocationAccuracyNearestTenMeters;  10米
+	      kCLLocationAccuracyHundredMeters;  百米
+	      kCLLocationAccuracyKilometer;  千米
+	      kCLLocationAccuracyThreeKilometers;  3千米
+	     */
+	//    self.mgr.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
+    
+    
+	    /*
+	     注意: iOS7只要开始定位, 系统就会自动要求用户对你的应用程序授权. 但是从iOS8开始, 想要定位必须先"自己""主动"要求用户授权
+	      在iOS8中不仅仅要主动请求授权, 而且必须再info.plist文件中配置一项属性才能弹出授权窗口
+	     NSLocationWhenInUseDescription，允许在前台获取GPS的描述
+	     NSLocationAlwaysUsageDescription，允许在后台获取GPS的描述
+	    */
+    
+	    // 判断是否是iOS8
+	    if([[UIDevice currentDevice].systemVersion doubleValue] >= 8.0)
+	    {
+	        NSLog(@"是iOS8");
+	        // 主动要求用户对我们的程序授权, 授权状态改变就会通知代理
+	        //
+	        [self.mgr requestAlwaysAuthorization]; // 请求前台和后台定位权限
+	//        [self.mgr requestWhenInUseAuthorization];// 请求前台定位权限
+	    }else
+	    {
+	        NSLog(@"是iOS7");
+	        // 3.开始监听(开始获取位置)
+	        [self.mgr startUpdatingLocation];
+	    }
+    
+	}
+	/**
+	 *  授权状态发生改变时调用
+	 *
+	 *  @param manager 触发事件的对象
+	 *  @param status  当前授权的状态
+	 */
+	- (void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status
+	{
+	    /*
+	     用户从未选择过权限
+	     kCLAuthorizationStatusNotDetermined
+	     无法使用定位服务，该状态用户无法改变
+	     kCLAuthorizationStatusRestricted
+	     用户拒绝该应用使用定位服务，或是定位服务总开关处于关闭状态
+	     kCLAuthorizationStatusDenied
+	     已经授权（废弃）
+	     kCLAuthorizationStatusAuthorized
+	     用户允许该程序无论何时都可以使用地理信息
+	     kCLAuthorizationStatusAuthorizedAlways
+	     用户同意程序在可见时使用地理位置
+	     kCLAuthorizationStatusAuthorizedWhenInUse
+	     */
+    
+	    if (status == kCLAuthorizationStatusNotDetermined) {
+	        NSLog(@"等待用户授权");
+	    }else if (status == kCLAuthorizationStatusAuthorizedAlways ||
+	              status == kCLAuthorizationStatusAuthorizedWhenInUse)
+        
+	    {
+	        NSLog(@"授权成功");
+	        // 开始定位
+	        [self.mgr startUpdatingLocation];
+        
+	    }else
+	    {
+	        NSLog(@"授权失败");
+	    }
+	}
+	#pragma mark - CLLocationManagerDelegate
+	//- (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
+	/**
+	 *  获取到位置信息之后就会调用(调用频率非常高)
+	 *
+	 *  @param manager   触发事件的对象
+	 *  @param locations 获取到的位置
+	 */
+	- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
+	{
+	    NSLog(@"%s", __func__);
+	    // 如果只需要获取一次, 可以获取到位置之后就停止
+	//    [self.mgr stopUpdatingLocation];
+    
+	}
 
-##### 单线程下载
+### CoreLocation 计算距离速度等
 
-		//开始下载
-		- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-		{
-			// 1.URL
-			NSURL *url = [NSURL URLWithString:@"http://localhost:8080/MJServer/resources/music.zip"];
-			
-			// 2.请求
-			NSURLRequest *request = [NSURLRequest requestWithURL:url];
-			
-			// 3.下载(创建完conn对象后，会自动发起一个异步请求)
-			[NSURLConnection connectionWithRequest:request delegate:self];
-		}
-		//代理
-		/**
-		*  1.接收到服务器的响应就会调用
-		*
-		*  @param response   响应
-		*/
-		- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
-		{
-			// 文件路径
-			NSString *caches = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-			NSString *filepath = [caches stringByAppendingPathComponent:@"videos.zip"];
-			
-			// 创建一个空的文件 到 沙盒中
-			NSFileManager *mgr = [NSFileManager defaultManager];
-			[mgr createFileAtPath:filepath contents:nil attributes:nil];
-			
-			// 创建一个用来写数据的文件句柄
-			self.writeHandle = [NSFileHandle fileHandleForWritingAtPath:filepath];
-			
-			// 获得文件的总大小
-			self.totalLength = response.expectedContentLength;
-		}
-		
-		/**
-		*  2.当接收到服务器返回的实体数据时调用（具体内容，这个方法可能会被调用多次）
-		*
-		*  @param data       这次返回的数据
-		*/
-		- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
-		{
-			// 移动到文件的最后面
-			[self.writeHandle seekToEndOfFile];
-			
-			// 将数据写入沙盒
-			[self.writeHandle writeData:data];
-			
-			// 累计文件的长度
-			self.currentLength += data.length;
-			
-			NSLog(@"下载进度：%f", (double)self.currentLength/ self.totalLength);
-		}
-		
-		/**
-		*  3.加载完毕后调用（服务器的数据已经完全返回后）
-		*/
-		- (void)connectionDidFinishLoading:(NSURLConnection *)connection
-		{
-			self.currentLength = 0;
-			self.totalLength = 0;
-			
-			// 关闭文件
-			[self.writeHandle closeFile];
-			self.writeHandle = nil;
-		}
-		// 断点续传
-		- (IBAction)download:(UIButton *)sender {
-			// 状态取反
-			sender.selected = !sender.isSelected;
-			
-			// 断点下载
-			
-			if (sender.selected) { // 继续（开始）下载
-				// 1.URL
-				NSURL *url = [NSURL URLWithString:@"http://localhost:8080/MJServer/resources/videos.zip"];
-				
-				// 2.请求
-				NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-				
-				// 设置请求头
-				NSString *range = [NSString stringWithFormat:@"bytes=%lld-", self.currentLength];
-				[request setValue:range forHTTPHeaderField:@"Range"];
-				
-				// 3.下载(创建完conn对象后，会自动发起一个异步请求)
-				self.conn = [NSURLConnection connectionWithRequest:request delegate:self];
-			} else { // 暂停
-				[self.conn cancel];
-				self.conn = nil;
-			}
-		}
-		
-##### 多线程下载
+	//    CLLocation; timestamp 当前获取到为止信息的时间
+	    /*
+	     获取走了多远（这一次的位置 减去上一次的位置）
+	     获取走这段路花了多少时间 （这一次的时间 减去上一次的时间）
+	     获取速度 （走了多远 ／ 花了多少时间）
+	     获取总共走的路程 （把每次获取到走了多远累加起来）
+	     获取平均速度 （用总路程 ／ 总时间）
+	     */
+	    // 获取当前的位置
+	    CLLocation *newLocation = [locations lastObject];
+    
+	    if (self.previousLocation != nil) {
+	        // 计算两次的距离(单位时米)
+	        CLLocationDistance distance = [newLocation distanceFromLocation:self.previousLocation];
+	        // 计算两次之间的时间（单位只秒）
+	        NSTimeInterval dTime = [newLocation.timestamp timeIntervalSinceDate:self.previousLocation.timestamp];
+	        // 计算速度（米／秒）
+	        CGFloat speed = distance / dTime;
+        
+        
+	        // 累加时间
+	        self.sumTime += dTime;
+        
+	        // 累加距离
+	        self.sumDistance += distance;
+        
+	        //  计算平均速度
+	        CGFloat avgSpeed = self.sumDistance / self.sumTime;
+        
+	        NSLog(@"距离%f 时间%f 速度%f 平均速度%f 总路程 %f 总时间 %f", distance, dTime, speed, avgSpeed, self.sumDistance, self.sumTime);
+	    }
+    
+	    // 纪录上一次的位置
+	    self.previousLocation = newLocation;
 
-	首先创建一个总大小的文件，然后每个线程下载不同的部分
-	
-### NSURLSession
+### CoreLocation 获取方向
 
-// 任务：任何请求都是一个任务
-// NSURLSessionDataTask : 普通的GET\POST请求
-// NSURLSessionDownloadTask : 文件下载
-// NSURLSessionUploadTask : 文件上传
+	- (void)viewDidLoad {
+	    [super viewDidLoad];
+    
+	    // 1.添加指南针图片
+    
+	    UIImageView *iv = [[UIImageView alloc] initWithImage: [UIImage imageNamed:@"bg_compasspointer"]];
+	    iv.center = CGPointMake(self.view.center.x, self.view.center.y);
+	    [self.view addSubview:iv];
+	    self.compasspointer = iv;
+    
+	    // 2.成为CoreLocation管理者的代理监听获取到的位置
+	    self.mgr.delegate = self;
+    
+	    // 3.开始获取用户位置
+	    // 注意:获取用户的方向信息是不需要用户授权的
+	    [self.mgr startUpdatingHeading];
+    
+    
+	}
+	#pragma mark - CLLocationManagerDelegate
+	// 当获取到用户方向时就会调用
+	- (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)newHeading
+	{
+	//    NSLog(@"%s", __func__);
+	    /*
+	     magneticHeading 设备与磁北的相对角度
+	     trueHeading 设置与真北的相对角度, 必须和定位一起使用, iOS需要设置的位置来计算真北
+	     真北始终指向地理北极点
+	     */
+	//    NSLog(@"%f", newHeading.magneticHeading);
+    
+	    // 1.将获取到的角度转为弧度 = (角度 * π) / 180;
+	    CGFloat angle = newHeading.magneticHeading * M_PI / 180;
+	    // 2.旋转图片
+	    /*
+	     顺时针 正
+	     逆时针 负数
+	     */
+	//    self.compasspointer.transform = CGAffineTransformIdentity;
+	    self.compasspointer.transform = CGAffineTransformMakeRotation(-angle);
+	}
 
-#### 普通请求
+### CoreLocation 区域监测
 
-		// 1.得到session对象
-		NSURLSession *session = [NSURLSession sharedSession];
-		
-		// 2.创建一个task，任务
-		//    NSURL *url = [NSURL URLWithString:@"http://localhost:8080/MJServer/video"];
-		//    NSURLSessionDataTask *task = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-		//        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
-		//        NSLog(@"----%@", dict);
-		//    }];
-		
-		NSURL *url = [NSURL URLWithString:@"http://192.168.15.172:8080/MJServer/login"];
-		
-		// 创建一个请求
-		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
-		request.HTTPMethod = @"POST";
-		// 设置请求体
-		request.HTTPBody = [@"username=123&pwd=123" dataUsingEncoding:NSUTF8StringEncoding];
-		
-		NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-			NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
-			NSLog(@"----%@", dict);
-		}];
-		
-		// 3.开始任务
-		[task resume];
-
-#### 下载文件
-
-##### 简单下载
-
-		// 1.得到session对象
-		NSURLSession *session = [NSURLSession sharedSession];
-		
-		// 2.创建一个下载task
-		NSURL *url = [NSURL URLWithString:@"http://localhost:8080/MJServer/resources/test.mp4"];
-		NSURLSessionDownloadTask *task = [session downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
-			// location : 临时文件的路径（下载好的文件）
-			
-			NSString *caches = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-			// response.suggestedFilename ： 建议使用的文件名，一般跟服务器端的文件名一致
-			NSString *file = [caches stringByAppendingPathComponent:response.suggestedFilename];
-			
-			// 将临时文件剪切或者复制Caches文件夹
-			NSFileManager *mgr = [NSFileManager defaultManager];
-			
-			// AtPath : 剪切前的文件路径
-			// ToPath : 剪切后的文件路径
-			[mgr moveItemAtPath:location.path toPath:file error:nil];
-		}];
-		
-		// 3.开始任务
-		[task resume];
-	
-##### 需要显示下载进度
-
-		- (void)downloadTask2
-		{
-			NSURLSessionConfiguration *cfg = [NSURLSessionConfiguration defaultSessionConfiguration];
-			
-			// 1.得到session对象
-			NSURLSession *session = [NSURLSession sessionWithConfiguration:cfg delegate:self delegateQueue:[NSOperationQueue mainQueue]];
-			
-			// 2.创建一个下载task
-			NSURL *url = [NSURL URLWithString:@"http://localhost:8080/MJServer/resources/test.mp4"];
-			NSURLSessionDownloadTask *task = [session downloadTaskWithURL:url];
-			
-			// 3.开始任务
-			[task resume];
-			
-			// 如果给下载任务设置了completionHandler这个block，也实现了下载的代理方法，优先执行block
-		}
-		
-		#pragma mark - NSURLSessionDownloadDelegate
-		/**
-		*  下载完毕后调用
-		*
-		*  @param location     临时文件的路径（下载好的文件）
-		*/
-		- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
-		{
-			// location : 临时文件的路径（下载好的文件）
-			
-			NSString *caches = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-			// response.suggestedFilename ： 建议使用的文件名，一般跟服务器端的文件名一致
-			
-			NSString *file = [caches stringByAppendingPathComponent:downloadTask.response.suggestedFilename];
-			
-			// 将临时文件剪切或者复制Caches文件夹
-			NSFileManager *mgr = [NSFileManager defaultManager];
-			
-			// AtPath : 剪切前的文件路径
-			// ToPath : 剪切后的文件路径
-			[mgr moveItemAtPath:location.path toPath:file error:nil];
-		}
-		
-		/**
-		*  恢复下载时调用
-		*/
-		- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes
-		{
-		
-		}
-		
-		/**
-		*  每当下载完（写完）一部分时就会调用（可能会被调用多次）
-		*
-		*  @param bytesWritten              这次调用写了多少
-		*  @param totalBytesWritten         累计写了多少长度到沙盒中了
-		*  @param totalBytesExpectedToWrite 文件的总长度
-		*/
-		- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
-		{
-			double progress = (double)totalBytesWritten / totalBytesExpectedToWrite;
-			NSLog(@"下载进度---%f", progress);
-		}
-		
-##### 断点续传
-
-		- (void)start
-		{
-			// 1.创建一个下载任务
-			NSURL *url = [NSURL URLWithString:@"http://192.168.15.172:8080/MJServer/resources/videos/minion_01.mp4"];
-			self.task = [self.session downloadTaskWithURL:url];
-			
-			// 2.开始任务
-			[self.task resume];
-		}
-		
-		/**
-		*  恢复（继续）
-		*/
-		- (void)resume
-		{
-			// 传入上次暂停下载返回的数据，就可以恢复下载
-			self.task = [self.session downloadTaskWithResumeData:self.resumeData];
-			
-			// 开始任务
-			[self.task resume];
-			
-			// 清空
-			self.resumeData = nil;
-		}
-		
-		/**
-		*  暂停
-		*/
-		- (void)pause
-		{
-			__weak typeof(self) vc = self;
-			[self.task cancelByProducingResumeData:^(NSData *resumeData) {
-				//  resumeData : 包含了继续下载的开始位置\下载的url
-				vc.resumeData = resumeData;
-				vc.task = nil;
-			}];
-		}
+	- (void)viewDidLoad {
+	    [super viewDidLoad];
+	    // 2.成为CoreLocation管理者的代理监听获取到的位置
+	    self.mgr.delegate = self;
+    
+	    // 注意:如果是iOS8, 想进行区域检测, 必须自己主动请求获取用户隐私的权限
+	    if  ([[UIDevice currentDevice].systemVersion doubleValue] >= 8.0 )
+	    {
+	        [self.mgr requestAlwaysAuthorization];
+	    }
+    
+	    // 3.开始检测用户所在的区域
+	    // 3.1创建区域
+	//    CLRegion 有两个子类是专门用于指定区域的
+	//    一个可以指定蓝牙的范围/ 一个是可以指定圆形的范围
+    
+	    // 创建中心点
+	    CLLocationCoordinate2D center = CLLocationCoordinate2DMake(40.058501, 116.304171);
+    
+	    // c创建圆形区域, 指定区域中心点的经纬度, 以及半径
+	    CLCircularRegion *circular = [[CLCircularRegion alloc] initWithCenter:center radius:500 identifier:@"软件园"];
+    
+	    [self.mgr startMonitoringForRegion:circular];
+    
+	}
+	#pragma mark - CLLocationManagerDelegate
+	// 进入监听区域时调用
+	- (void)locationManager:(CLLocationManager *)manager didEnterRegion:(CLRegion *)region
+	{
+	    NSLog(@"进入监听区域时调用");
+	}
+	// 离开监听区域时调用
+	- (void)locationManager:(CLLocationManager *)manager didExitRegion:(CLRegion *)region
+	{
+	    NSLog(@"离开监听区域时调用");
+	}
