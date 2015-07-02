@@ -229,3 +229,36 @@ description:
 	{
 	    NSLog(@"离开监听区域时调用");
 	}
+
+### CoreLocation 地理编码
+
+    // 1.创建地理编码对象
+    self.geocoder = [[CLGeocoder alloc] init];
+    // 2.利用地理编码对象编码
+    // 根据传入的地址获取该地址对应的经纬度信息
+    [self.geocoder geocodeAddressString:addressStr completionHandler:^(NSArray *placemarks, NSError *error) {
+    }];
+
+### CoreLocation 反地理编码
+
+    // 1.根据用户输入的经纬度创建CLLocation对象
+    CLLocation *location = [[CLLocation alloc] initWithLatitude:[latitude doubleValue]  longitude:[longtitude doubleValue]];
+    
+    // 2.根据CLLocation对象获取对应的地标信息
+    [self.geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
+    }];
+
+### CoreLocation 第三方框架
+
+	INTULocationManager
+    // 1.创建位置管理者
+    INTULocationManager *mgr = [INTULocationManager sharedInstance];
+    // 2.利用位置管理者获取位置
+    [mgr requestLocationWithDesiredAccuracy:INTULocationAccuracyRoom  timeout:5 delayUntilAuthorized:YES block:^(CLLocation *currentLocation, INTULocationAccuracy achievedAccuracy, INTULocationStatus status) {
+        if (status == INTULocationStatusSuccess) {
+            NSLog(@"获取位置成功 %f %f", currentLocation.coordinate.latitude , currentLocation.coordinate.longitude);
+        }else if(status ==  INTULocationStatusError)
+        {
+            NSLog(@"获取失败");
+        }
+    }];
